@@ -99,3 +99,5 @@ Auth: email/password + magic link are **enabled by default** on new Supabase pro
 - **USD→BRL FX rate is hardcoded to 5.0** in `src/hooks/usePortfolio.ts` and `src/features/dashboard/HomePage.tsx`. To make it live, extend `refresh-prices` to fetch a daily rate and store it under a sentinel asset, then read it in `usePortfolio.ts`.
 - The Supabase client is loosely typed (no generated `Database` types yet). Run `supabase gen types typescript --project-id noldxlpfluvfspuavigl > src/types/database.ts` if you want full type-safety on `.from(...)` calls — then re-add `createClient<Database>(...)` in `src/lib/supabase.ts`.
 - Bundle is ~1 MB (300 kB gzipped). To split: dynamic-import the Recharts pages or set `build.rollupOptions.output.manualChunks`.
+
+
