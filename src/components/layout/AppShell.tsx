@@ -16,9 +16,13 @@ export function AppShell() {
   const { t, i18n } = useTranslation();
 
   return (
-    <div className="flex min-h-dvh flex-col bg-gradient-to-b from-background to-background md:flex-row">
+    <div className="relative flex min-h-dvh flex-col bg-slate-950 overflow-hidden md:flex-row">
+      {/* Ambient background blobs */}
+      <div className="fixed top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-primary/20 blur-[120px] animate-pulse-slow pointer-events-none" />
+      <div className="fixed bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-accent/20 blur-[140px] animate-float pointer-events-none" />
+      
       {/* Sidebar (md+) */}
-      <aside className="hidden w-60 shrink-0 border-r bg-card/40 md:flex md:flex-col">
+      <aside className="hidden w-60 shrink-0 border-r border-white/5 bg-slate-900/40 backdrop-blur-2xl md:flex md:flex-col z-20">
         <div className="flex h-16 items-center gap-2 px-5 text-lg font-bold tracking-tight">
           <Sparkles className="size-5 text-primary" />
           {t('app.name')}
@@ -56,7 +60,7 @@ export function AppShell() {
       </aside>
 
       {/* Mobile header */}
-      <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b bg-background/95 px-4 pt-safe backdrop-blur md:hidden">
+      <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-white/5 bg-slate-900/50 px-4 pt-safe backdrop-blur-xl md:hidden">
         <div className="flex items-center gap-2 text-base font-semibold">
           <Sparkles className="size-5 text-primary" />
           {t('app.name')}
@@ -69,14 +73,14 @@ export function AppShell() {
         </button>
       </header>
 
-      <main className="flex-1 overflow-x-hidden pb-24 md:pb-8">
+      <main className="relative z-10 flex-1 overflow-x-hidden pb-24 md:pb-8">
         <div className="mx-auto w-full max-w-5xl px-4 py-4 md:px-8 md:py-8">
           <Outlet />
         </div>
       </main>
 
       {/* Bottom nav (mobile) */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t bg-background/95 pb-safe backdrop-blur md:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-white/5 bg-slate-900/50 pb-safe backdrop-blur-xl md:hidden">
         {links.map((l) => (
           <NavLink
             key={l.to}

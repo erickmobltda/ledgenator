@@ -21,15 +21,17 @@ function KpiCard({
   sub,
   icon,
   tone,
+  delay = 0,
 }: {
   label: string;
   value: string;
   sub?: React.ReactNode;
   icon: React.ReactNode;
   tone?: 'pos' | 'neg';
+  delay?: number;
 }) {
   return (
-    <Card>
+    <Card style={{ animationFillMode: 'both', animationDelay: `${delay}ms` }}>
       <CardContent className="p-4">
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <span>{label}</span>
@@ -96,23 +98,27 @@ export function HomePage() {
           label={t('dashboard.totalInvested')}
           value={formatCurrency(p.investedTotalBRL, 'BRL', i18n.language)}
           icon={<Wallet className="size-4" />}
+          delay={0}
         />
         <KpiCard
           label={t('dashboard.currentValue')}
           value={formatCurrency(p.marketTotalBRL, 'BRL', i18n.language)}
           icon={<Coins className="size-4" />}
+          delay={100}
         />
         <KpiCard
           label={t('dashboard.pnl')}
           value={formatCurrency(pnlBRL, 'BRL', i18n.language)}
           icon={pnlBRL >= 0 ? <TrendingUp className="size-4" /> : <TrendingDown className="size-4" />}
           tone={pnlBRL >= 0 ? 'pos' : 'neg'}
+          delay={200}
         />
         <KpiCard
           label={t('dashboard.pnlPct')}
           value={formatPercent(pnlPctBRL, i18n.language)}
           icon={pnlPctBRL >= 0 ? <TrendingUp className="size-4" /> : <TrendingDown className="size-4" />}
           tone={pnlPctBRL >= 0 ? 'pos' : 'neg'}
+          delay={300}
         />
       </div>
 
@@ -121,27 +127,31 @@ export function HomePage() {
           label={t('dashboard.totalInvested')}
           value={formatCurrency(p.investedTotalUSD, 'USD', i18n.language)}
           icon={<Wallet className="size-4" />}
+          delay={400}
         />
         <KpiCard
           label={t('dashboard.currentValue')}
           value={formatCurrency(p.marketTotalUSD, 'USD', i18n.language)}
           icon={<Coins className="size-4" />}
+          delay={500}
         />
         <KpiCard
           label={t('dashboard.pnl')}
           value={formatCurrency(pnlUSD, 'USD', i18n.language)}
           icon={pnlUSD >= 0 ? <TrendingUp className="size-4" /> : <TrendingDown className="size-4" />}
           tone={pnlUSD >= 0 ? 'pos' : 'neg'}
+          delay={600}
         />
         <KpiCard
           label={t('dashboard.pnlPct')}
           value={formatPercent(pnlPctUSD, i18n.language)}
           icon={pnlPctUSD >= 0 ? <TrendingUp className="size-4" /> : <TrendingDown className="size-4" />}
           tone={pnlPctUSD >= 0 ? 'pos' : 'neg'}
+          delay={700}
         />
       </div>
 
-      <Card>
+      <Card style={{ animationFillMode: 'both', animationDelay: `800ms` }}>
         <CardHeader><CardTitle>{t('dashboard.positions')}</CardTitle></CardHeader>
         <CardContent className="p-0">
           <PositionsTable positions={p.positions} />
@@ -149,19 +159,19 @@ export function HomePage() {
       </Card>
 
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-        <Card>
+        <Card style={{ animationFillMode: 'both', animationDelay: `900ms` }}>
           <CardHeader><CardTitle>{t('dashboard.byAssetType')}</CardTitle></CardHeader>
           <CardContent><AllocationDonut data={p.byAssetType} /></CardContent>
         </Card>
-        <Card>
+        <Card style={{ animationFillMode: 'both', animationDelay: `1000ms` }}>
           <CardHeader><CardTitle>{t('dashboard.performance')}</CardTitle></CardHeader>
           <CardContent><PerformanceArea data={p.timeline} /></CardContent>
         </Card>
-        <Card>
+        <Card style={{ animationFillMode: 'both', animationDelay: `1100ms` }}>
           <CardHeader><CardTitle>{t('dashboard.byBroker')}</CardTitle></CardHeader>
           <CardContent><BrokerBars data={p.byBroker} /></CardContent>
         </Card>
-        <Card>
+        <Card style={{ animationFillMode: 'both', animationDelay: `1200ms` }}>
           <CardHeader><CardTitle>{t('dashboard.byCurrency')}</CardTitle></CardHeader>
           <CardContent><CurrencyDonut data={p.byCurrency} /></CardContent>
         </Card>
