@@ -68,6 +68,9 @@
     "save": "Save",
     "cancel": "Cancel",
     "noOperations": "No operations yet.",
+    "filterByAsset": "Filter by asset...",
+    "allTypes": "All types",
+    "allBrokers": "All brokers",
     "assetTypes": {
       "STOCK": "Stock",
       "ETF": "ETF",
@@ -130,6 +133,7 @@
     "create": "Create",
     "createNew": "Create new: {{value}}",
     "noResults": "No results",
-    "error": "Error"
+    "error": "Error",
+    "clearFilters": "Clear filters"
   }
 }

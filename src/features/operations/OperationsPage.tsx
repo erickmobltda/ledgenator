@@ -1,20 +1,38 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Pencil, Trash2, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { Plus, Pencil, Trash2, ArrowUpRight, ArrowDownRight, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Empty } from '@/components/ui/empty';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useOperations, useDeleteOperation, type OperationRow } from './useOperations';
+import { useBrokers } from '@/features/brokers/useBrokers';
 import { OperationForm } from './OperationForm';
 import { formatCurrency, formatNumber } from '@/lib/currency';
 
 export function OperationsPage() {
   const { t, i18n } = useTranslation();
   const { data: ops, isLoading } = useOperations();
+  const { data: brokers } = useBrokers();
   const del = useDeleteOperation();
   const [open, setOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<OperationRow | null>(null);
+
+  const [assetFilter, setAssetFilter] = React.useState('');
+  const [typeFilter, setTypeFilter] = React.useState<string>('ALL');
+  const [brokerFilter, setBrokerFilter] = React.useState<string>('ALL');
+
+  const filteredOps = React.useMemo(() => {
+    if (!ops) return [];
+    return ops.filter((o) => {
+      if (assetFilter && !o.asset.ticker.toLowerCase().includes(assetFilter.toLowerCase())) return false;
+      if (typeFilter !== 'ALL' && o.asset.asset_type !== typeFilter) return false;
+      if (brokerFilter !== 'ALL' && o.current_broker.id !== brokerFilter) return false;
+      return true;
+    });
+  }, [ops, assetFilter, typeFilter, brokerFilter]);
 
   return (
     <div className="space-y-5">
@@ -23,6 +41,51 @@ export function OperationsPage() {
         <Button onClick={() => { setEditing(null); setOpen(true); }}>
           <Plus className="size-4" />{t('operations.new')}
         </Button>
+      </div>
+
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <Input
+          placeholder={t('operations.filterByAsset')}
+          value={assetFilter}
+          onChange={(e) => setAssetFilter(e.target.value)}
+          className="sm:w-[200px]"
+        />
+        <Select value={typeFilter} onValueChange={setTypeFilter}>
+          <SelectTrigger className="sm:w-[150px]">
+            <SelectValue placeholder={t('operations.allTypes')} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">{t('operations.allTypes')}</SelectItem>
+            {['STOCK', 'ETF', 'FII', 'REIT', 'CRYPTO', 'BOND', 'OTHER'].map(x => (
+              <SelectItem key={x} value={x}>{t(`operations.assetTypes.${x}`)}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={brokerFilter} onValueChange={setBrokerFilter}>
+          <SelectTrigger className="sm:w-[200px]">
+            <SelectValue placeholder={t('operations.allBrokers')} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">{t('operations.allBrokers')}</SelectItem>
+            {brokers?.map((b) => (
+              <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {(assetFilter || typeFilter !== 'ALL' || brokerFilter !== 'ALL') && (
+          <Button
+            variant="ghost"
+            onClick={() => {
+              setAssetFilter('');
+              setTypeFilter('ALL');
+              setBrokerFilter('ALL');
+            }}
+            className="px-2"
+          >
+            <X className="mr-2 size-4" />
+            {t('common.clearFilters')}
+          </Button>
+        )}
       </div>
 
       {isLoading ? (
@@ -34,8 +97,11 @@ export function OperationsPage() {
         />
       ) : (
         <div className="space-y-2">
-          {ops.map((o) => (
-            <Card key={o.id} className="px-4 py-3">
+          {!filteredOps.length ? (
+            <div className="py-8 text-center text-sm text-muted-foreground">{t('common.noResults')}</div>
+          ) : (
+            filteredOps.map((o) => (
+              <Card key={o.id} className="px-4 py-3">
               <div className="flex items-center gap-3">
                 <div className={
                   'flex size-9 shrink-0 items-center justify-center rounded-full ' +
@@ -74,8 +140,9 @@ export function OperationsPage() {
                   </Button>
                 </div>
               </div>
-            </Card>
-          ))}
+              </Card>
+            ))
+          )}
         </div>
       )}
 

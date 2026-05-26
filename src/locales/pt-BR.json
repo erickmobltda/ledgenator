@@ -68,6 +68,9 @@
     "save": "Salvar",
     "cancel": "Cancelar",
     "noOperations": "Você ainda não tem operações.",
+    "filterByAsset": "Filtrar por ativo...",
+    "allTypes": "Todos os tipos",
+    "allBrokers": "Todas as corretoras",
     "assetTypes": {
       "STOCK": "Ação",
       "ETF": "ETF",
@@ -130,6 +133,7 @@
     "create": "Criar",
     "createNew": "Criar novo: {{value}}",
     "noResults": "Nenhum resultado",
-    "error": "Erro"
+    "error": "Erro",
+    "clearFilters": "Limpar filtros"
   }
 }
