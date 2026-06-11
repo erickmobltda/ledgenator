@@ -15,6 +15,23 @@ export function LoginPage() {
   const [password, setPassword] = React.useState('');
   const [loadingPw, setLoadingPw] = React.useState(false);
   const [loadingMl, setLoadingMl] = React.useState(false);
+  const [loadingDemo, setLoadingDemo] = React.useState(false);
+
+  async function handleDemo() {
+    setLoadingDemo(true);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: 'demo@ledgenator.app',
+        password: 'demo1234',
+      });
+      if (error) throw error;
+    } catch (err) {
+      const e = err as Error;
+      toast.error(t('auth.errorGeneric'), e.message);
+    } finally {
+      setLoadingDemo(false);
+    }
+  }
 
   async function handlePassword(mode: 'signin' | 'signup') {
     setLoadingPw(true);
@@ -127,6 +144,18 @@ export function LoginPage() {
               </Button>
             </TabsContent>
           </Tabs>
+
+          <div className="mt-4 border-t pt-4">
+            <Button
+              variant="secondary"
+              className="w-full"
+              onClick={handleDemo}
+              disabled={loadingDemo}
+            >
+              {loadingDemo ? t('auth.loading') : t('auth.demoButton')}
+            </Button>
+            <p className="mt-2 text-center text-xs text-muted-foreground">{t('auth.demoHint')}</p>
+          </div>
         </CardContent>
       </Card>
     </div>

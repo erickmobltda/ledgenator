@@ -5,6 +5,24 @@ Personal investment tracker across multiple brokers (stocks, ETFs, FIIs, crypto,
 - **Languages:** pt-BR (primary), en
 - **Mobile-first:** designed for iPhone 16 Pro Safari (safe-area insets, bottom tab nav, 44 px touch targets)
 
+## Live demo
+
+Try it without signing up: **https://erickmobltda.github.io/ledgenator/**
+
+| | |
+|---|---|
+| **Email** | `demo@ledgenator.app` |
+| **Password** | `demo1234` |
+
+Or just click **“Try the demo”** on the login page — it logs you in with the
+credentials above. The demo account comes pre-loaded with multiple brokers,
+multi-currency assets (BRL/USD), funding events, exchange rates, and a few years
+of buy/sell operations so the dashboard, charts, and reports all have data.
+
+> It's a **shared sandbox** account: anyone can sign in, so data may have been
+> changed by other visitors. To reset it to the original sample data, re-apply
+> the seed (see [Seeding the demo account](#seeding-the-demo-account)).
+
 ## Quick start
 
 ```bash
@@ -58,6 +76,23 @@ supabase secrets set \
 | Edge function | `refresh-prices` (JWT-verified) |
 
 Auth: email/password + magic link are **enabled by default** on new Supabase projects, so no extra configuration is needed for either flow. Magic link redirects to `window.location.origin`.
+
+## Seeding the demo account
+
+The public demo login and its sample portfolio are defined in
+`supabase/migrations/0006_demo_account_seed.sql`. It creates a pre-confirmed
+`demo@ledgenator.app` user (password `demo1234`) and fictional brokers, assets,
+funding events, FX rates, and operations.
+
+To apply (or reset) it:
+
+1. Supabase Dashboard → **SQL Editor**.
+2. Paste the contents of `supabase/migrations/0006_demo_account_seed.sql` and **Run**
+   (equivalently `supabase db push`, or run the file via `psql`).
+
+The script is **idempotent** — re-running it upserts the user/catalog and replaces
+the demo account's own rows, restoring the original sample data. Verification
+queries are included as comments at the bottom of the file.
 
 ## Supabase setup from scratch (if you ever recreate the project)
 
