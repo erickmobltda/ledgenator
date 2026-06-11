@@ -20,7 +20,9 @@
     "magicLinkSent": "We sent you a link. Open the message to sign in.",
     "signOut": "Sign out",
     "loading": "Loading…",
-    "errorGeneric": "Something went wrong. Try again."
+    "errorGeneric": "Something went wrong. Try again.",
+    "demoButton": "Try the demo",
+    "demoHint": "Explore a sample portfolio — no sign-up needed."
   },
   "dashboard": {
     "title": "Dashboard",

@@ -20,7 +20,9 @@
     "magicLinkSent": "Enviamos um link para seu e-mail. Abra a mensagem para entrar.",
     "signOut": "Sair",
     "loading": "Carregando…",
-    "errorGeneric": "Algo deu errado. Tente novamente."
+    "errorGeneric": "Algo deu errado. Tente novamente.",
+    "demoButton": "Testar a conta demo",
+    "demoHint": "Explore uma carteira de exemplo — sem precisar criar conta."
   },
   "dashboard": {
     "title": "Painel",
