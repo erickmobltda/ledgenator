@@ -32,10 +32,17 @@ begin
   -- ==========================================================================
   -- 1. Pre-confirmed auth user (idempotent on id/email)
   -- ==========================================================================
+  -- NOTE: GoTrue scans the *_token / email_change / phone_change columns into
+  -- non-nullable Go strings. If left NULL (the column default), every password
+  -- login fails with HTTP 500 "Database error querying schema". We must seed
+  -- them as empty strings, not NULL.
   insert into auth.users (
     instance_id, id, aud, role, email,
     encrypted_password, email_confirmed_at,
     raw_app_meta_data, raw_user_meta_data,
+    confirmation_token, recovery_token, email_change,
+    email_change_token_new, email_change_token_current,
+    phone_change, phone_change_token, reauthentication_token,
     created_at, updated_at
   )
   select
@@ -48,11 +55,27 @@ begin
     now(),
     '{"provider":"email","providers":["email"]}'::jsonb,
     '{"display_name":"Demo Investor"}'::jsonb,
+    '', '', '',
+    '', '',
+    '', '', '',
     now(),
     now()
   where not exists (
     select 1 from auth.users where email = 'demo@ledgenator.app' or id = demo_id
   );
+
+  -- Self-heal: a demo user seeded before this fix may already have NULL tokens,
+  -- which keeps breaking login. Coalesce them to '' so re-running repairs it.
+  update auth.users set
+    confirmation_token         = coalesce(confirmation_token, ''),
+    recovery_token             = coalesce(recovery_token, ''),
+    email_change               = coalesce(email_change, ''),
+    email_change_token_new     = coalesce(email_change_token_new, ''),
+    email_change_token_current = coalesce(email_change_token_current, ''),
+    phone_change               = coalesce(phone_change, ''),
+    phone_change_token         = coalesce(phone_change_token, ''),
+    reauthentication_token     = coalesce(reauthentication_token, '')
+  where id = demo_id;
 
   -- Email identity (GoTrue requires this for password sign-in).
   insert into auth.identities (
