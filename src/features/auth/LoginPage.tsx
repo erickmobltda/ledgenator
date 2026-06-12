@@ -147,8 +147,8 @@ export function LoginPage() {
 
           <div className="mt-4 border-t pt-4">
             <Button
-              variant="secondary"
-              className="w-full"
+              variant="outline"
+              className="w-full border-primary/40 text-foreground hover:border-primary/70 hover:bg-primary/10"
               onClick={handleDemo}
               disabled={loadingDemo}
             >
