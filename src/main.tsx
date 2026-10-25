@@ -11,7 +11,7 @@ import './index.css';
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter basename="/ledgenator">
+      <BrowserRouter basename={import.meta.env.BASE_URL}>
         <App />
         <Toaster />
       </BrowserRouter>
