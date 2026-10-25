@@ -7,7 +7,7 @@ Personal investment tracker across multiple brokers (stocks, ETFs, FIIs, crypto,
 
 ## Live demo
 
-Try it without signing up: **https://ledgenator.erickmob.com**
+Try it without signing up: **https://ledgenator.erickmob.dev**
 
 | | |
 |---|---|
@@ -28,7 +28,7 @@ of buy/sell operations so the dashboard, charts, and reports all have data.
 
 | Piece | Where |
 |---|---|
-| Frontend | This repo, on GitHub Pages at `ledgenator.erickmob.com` |
+| Frontend | This repo, on GitHub Pages at `ledgenator.erickmob.dev` |
 | Login | Firebase Auth (project `erickmob-apps`, shared with other apps). Sign-up is off: accounts are created in the Firebase console |
 | Per-user data | Firestore `apps/ledgenator/users/{uid}/{profile,brokers,operations,funding_events,broker_transfers}` |
 | Shared data | Firestore `apps/ledgenator/assets` (ticker catalog, append-only) and `apps/ledgenator/price_cache` (written only by the API) |
@@ -52,7 +52,7 @@ npm run dev                  # http://localhost:5173
 |---|---|
 | `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_APP_ID` | `firebase apps:sdkconfig WEB <ledgenator appId> --project erickmob-apps` |
 | `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID` | `erickmob-apps.firebaseapp.com`, `erickmob-apps` |
-| `VITE_API_URL` | `https://api.erickmob.com` |
+| `VITE_API_URL` | `https://api.erickmob.dev` |
 
 The deploy workflow reads the same names from the repo's GitHub secrets. The market-data keys (`BRAPI_TOKEN`, `ALPHAVANTAGE_API_KEY`, `COINGECKO_DEMO_API_KEY`) live only in erickmob-api's server environment.
 
