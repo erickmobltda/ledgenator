@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import type { Asset, AssetType, Market, Operation } from '@/types/database';
+import { addDoc, deleteDoc, getDocs, limit, query, updateDoc, where } from 'firebase/firestore';
+import { currentUid, sharedCollection, userCollection, userDoc } from '@/lib/firebase';
+import type { Asset, AssetType, Broker, Market, Operation } from '@/types/database';
 
 export const operationsKey = ['operations'] as const;
 export const assetsKey = ['assets'] as const;
@@ -11,18 +12,36 @@ export interface OperationRow extends Operation {
   bought_broker: { id: string; name: string } | null;
 }
 
+export async function fetchAssets(): Promise<Asset[]> {
+  const snap = await getDocs(sharedCollection('assets'));
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Asset);
+}
+
 export function useOperations() {
   return useQuery({
     queryKey: operationsKey,
     queryFn: async (): Promise<OperationRow[]> => {
-      const { data, error } = await supabase
-        .from('operations')
-        .select(
-          '*, asset:assets(*), current_broker:brokers!current_broker_id(id,name), bought_broker:brokers!bought_broker_id(id,name)',
-        )
-        .order('op_date', { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as unknown as OperationRow[];
+      const [opsSnap, brokersSnap, assets] = await Promise.all([
+        getDocs(userCollection('operations')),
+        getDocs(userCollection('brokers')),
+        fetchAssets(),
+      ]);
+      // Join in the client what Postgres joined in the query.
+      const assetById = new Map(assets.map((a) => [a.id, a]));
+      const brokerById = new Map(
+        brokersSnap.docs.map((d) => [d.id, { id: d.id, name: (d.data() as Broker).name }]),
+      );
+      return opsSnap.docs
+        .map((d) => {
+          const op = { id: d.id, ...d.data() } as Operation;
+          return {
+            ...op,
+            asset: assetById.get(op.asset_id)!,
+            current_broker: brokerById.get(op.current_broker_id)!,
+            bought_broker: op.bought_broker_id ? (brokerById.get(op.bought_broker_id) ?? null) : null,
+          };
+        })
+        .sort((a, b) => b.op_date.localeCompare(a.op_date));
     },
   });
 }
@@ -30,11 +49,7 @@ export function useOperations() {
 export function useAssets() {
   return useQuery({
     queryKey: assetsKey,
-    queryFn: async (): Promise<Asset[]> => {
-      const { data, error } = await supabase.from('assets').select('*').order('ticker');
-      if (error) throw error;
-      return data ?? [];
-    },
+    queryFn: async (): Promise<Asset[]> => (await fetchAssets()).sort((a, b) => a.ticker.localeCompare(b.ticker)),
   });
 }
 
@@ -45,21 +60,24 @@ export async function findOrCreateAsset(input: {
   currency: Asset['currency'];
 }): Promise<Asset> {
   const ticker = input.ticker.trim().toUpperCase();
-  const { data: existing } = await supabase
-    .from('assets')
-    .select('*')
-    .eq('ticker', ticker)
-    .eq('market', input.market)
-    .maybeSingle();
-  if (existing) return existing;
-  const { data, error } = await supabase
-    .from('assets')
-    .insert({ ticker, asset_type: input.asset_type, market: input.market, currency: input.currency })
-    .select('*')
-    .single();
-  if (error) throw error;
-  return data;
+  const existing = await getDocs(
+    query(sharedCollection('assets'), where('ticker', '==', ticker), where('market', '==', input.market), limit(1)),
+  );
+  if (!existing.empty) return { id: existing.docs[0].id, ...existing.docs[0].data() } as Asset;
+  const row = {
+    ticker,
+    asset_type: input.asset_type,
+    market: input.market,
+    currency: input.currency,
+    display_name: null,
+    created_at: new Date().toISOString(),
+  };
+  const ref = await addDoc(sharedCollection('assets'), row);
+  return { id: ref.id, ...row };
 }
+
+// Postgres computed this column: round(units * unit_price, 2).
+const totalPrice = (units: number, unitPrice: number) => Math.round(units * unitPrice * 100) / 100;
 
 export function useSaveOperation() {
   const qc = useQueryClient();
@@ -76,38 +94,27 @@ export function useSaveOperation() {
       fees: number;
       currency: Operation['currency'];
     }) => {
-      const { data: userRes } = await supabase.auth.getUser();
-      const user_id = userRes.user!.id;
+      const fields = {
+        current_broker_id: input.current_broker_id,
+        bought_broker_id: input.bought_broker_id,
+        asset_id: input.asset_id,
+        side: input.side,
+        op_date: input.op_date,
+        units: input.units,
+        unit_price: input.unit_price,
+        total_price: totalPrice(input.units, input.unit_price),
+        fees: input.fees,
+        currency: input.currency,
+      };
       if (input.id) {
-        const { error } = await supabase
-          .from('operations')
-          .update({
-            current_broker_id: input.current_broker_id,
-            bought_broker_id: input.bought_broker_id,
-            asset_id: input.asset_id,
-            side: input.side,
-            op_date: input.op_date,
-            units: input.units,
-            unit_price: input.unit_price,
-            fees: input.fees,
-            currency: input.currency,
-          })
-          .eq('id', input.id);
-        if (error) throw error;
+        await updateDoc(userDoc('operations', input.id), fields);
       } else {
-        const { error } = await supabase.from('operations').insert({
-          user_id,
-          current_broker_id: input.current_broker_id,
-          bought_broker_id: input.bought_broker_id,
-          asset_id: input.asset_id,
-          side: input.side,
-          op_date: input.op_date,
-          units: input.units,
-          unit_price: input.unit_price,
-          fees: input.fees,
-          currency: input.currency,
+        await addDoc(userCollection('operations'), {
+          ...fields,
+          user_id: currentUid(),
+          fx_rate_brl: null,
+          created_at: new Date().toISOString(),
         });
-        if (error) throw error;
       }
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: operationsKey }),
@@ -118,8 +125,7 @@ export function useDeleteOperation() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('operations').delete().eq('id', id);
-      if (error) throw error;
+      await deleteDoc(userDoc('operations', id));
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: operationsKey }),
   });

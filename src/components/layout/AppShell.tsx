@@ -2,7 +2,8 @@ import { Outlet, NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Home, ListOrdered, Building2, UserRound, LogOut, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { supabase } from '@/lib/supabase';
+import { signOut } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 
 const links = [
@@ -52,7 +53,7 @@ export function AppShell() {
           >
             {i18n.language.startsWith('pt') ? 'Switch to English' : 'Mudar para Português'}
           </button>
-          <Button variant="outline" size="sm" className="w-full" onClick={() => void supabase.auth.signOut()}>
+          <Button variant="outline" size="sm" className="w-full" onClick={() => void signOut(auth)}>
             <LogOut className="size-4" />
             {t('auth.signOut')}
           </Button>

@@ -1,68 +1,34 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { supabase } from '@/lib/supabase';
+import { auth } from '@/lib/firebase';
 import { toast } from '@/components/ui/toast';
 import { Sparkles } from 'lucide-react';
+
+// Public sandbox account; erickmob-api and the Firestore rules keep it inside
+// Ledgenator and away from paid APIs (custom claim `demo`).
+const DEMO_EMAIL = 'demo@ledgenator.app';
+const DEMO_PASSWORD = 'demo1234';
 
 export function LoginPage() {
   const { t, i18n } = useTranslation();
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [loadingPw, setLoadingPw] = React.useState(false);
-  const [loadingMl, setLoadingMl] = React.useState(false);
   const [loadingDemo, setLoadingDemo] = React.useState(false);
 
-  async function handleDemo() {
-    setLoadingDemo(true);
+  async function signIn(withEmail: string, withPassword: string, setLoading: (v: boolean) => void) {
+    setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: 'demo@ledgenator.app',
-        password: 'demo1234',
-      });
-      if (error) throw error;
+      await signInWithEmailAndPassword(auth, withEmail, withPassword);
     } catch (err) {
-      const e = err as Error;
-      toast.error(t('auth.errorGeneric'), e.message);
+      toast.error(t('auth.errorGeneric'), (err as Error).message);
     } finally {
-      setLoadingDemo(false);
-    }
-  }
-
-  async function handlePassword(mode: 'signin' | 'signup') {
-    setLoadingPw(true);
-    try {
-      const { error } =
-        mode === 'signin'
-          ? await supabase.auth.signInWithPassword({ email, password })
-          : await supabase.auth.signUp({ email, password });
-      if (error) throw error;
-    } catch (err) {
-      const e = err as Error;
-      toast.error(t('auth.errorGeneric'), e.message);
-    } finally {
-      setLoadingPw(false);
-    }
-  }
-
-  async function handleMagic() {
-    setLoadingMl(true);
-    try {
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: { emailRedirectTo: window.location.origin },
-      });
-      if (error) throw error;
-      toast.success(t('auth.magicLinkSent'));
-    } catch (err) {
-      const e = err as Error;
-      toast.error(t('auth.errorGeneric'), e.message);
-    } finally {
-      setLoadingMl(false);
+      setLoading(false);
     }
   }
 
@@ -89,67 +55,44 @@ export function LoginPage() {
           <CardDescription>{t('app.tagline')}</CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="password">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="password">{t('auth.passwordTab')}</TabsTrigger>
-              <TabsTrigger value="magic">{t('auth.magicLinkTab')}</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="password" className="space-y-3">
-              <div className="space-y-2">
-                <Label htmlFor="email-pw">{t('auth.email')}</Label>
-                <Input
-                  id="email-pw"
-                  type="email"
-                  autoComplete="email"
-                  inputMode="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">{t('auth.password')}</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  autoComplete="current-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
-              <div className="flex flex-col gap-2 pt-2">
-                <Button onClick={() => handlePassword('signin')} disabled={loadingPw || !email || !password}>
-                  {loadingPw ? t('auth.loading') : t('auth.signIn')}
-                </Button>
-                <Button variant="outline" onClick={() => handlePassword('signup')} disabled={loadingPw || !email || !password}>
-                  {t('auth.signUp')}
-                </Button>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="magic" className="space-y-3">
-              <div className="space-y-2">
-                <Label htmlFor="email-ml">{t('auth.email')}</Label>
-                <Input
-                  id="email-ml"
-                  type="email"
-                  autoComplete="email"
-                  inputMode="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-              <Button className="w-full" onClick={handleMagic} disabled={loadingMl || !email}>
-                {loadingMl ? t('auth.loading') : t('auth.sendMagicLink')}
-              </Button>
-            </TabsContent>
-          </Tabs>
+          <form
+            className="space-y-3"
+            onSubmit={(e) => {
+              e.preventDefault();
+              void signIn(email, password, setLoadingPw);
+            }}
+          >
+            <div className="space-y-2">
+              <Label htmlFor="email-pw">{t('auth.email')}</Label>
+              <Input
+                id="email-pw"
+                type="email"
+                autoComplete="email"
+                inputMode="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">{t('auth.password')}</Label>
+              <Input
+                id="password"
+                type="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+            <Button type="submit" className="w-full" disabled={loadingPw || !email || !password}>
+              {loadingPw ? t('auth.loading') : t('auth.signIn')}
+            </Button>
+          </form>
 
           <div className="mt-4 border-t pt-4">
             <Button
               variant="outline"
               className="w-full border-primary/40 text-foreground hover:border-primary/70 hover:bg-primary/10"
-              onClick={handleDemo}
+              onClick={() => void signIn(DEMO_EMAIL, DEMO_PASSWORD, setLoadingDemo)}
               disabled={loadingDemo}
             >
               {loadingDemo ? t('auth.loading') : t('auth.demoButton')}

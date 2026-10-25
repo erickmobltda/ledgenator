@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
+import { getDocs, limit, query, where } from 'firebase/firestore';
 import { useOperations } from '@/features/operations/useOperations';
-import { supabase } from '@/lib/supabase';
+import { sharedCollection } from '@/lib/firebase';
 import type { Asset, Currency, PriceCache } from '@/types/database';
 
 export interface Position {
@@ -42,9 +43,8 @@ export function usePriceCache() {
   return useQuery({
     queryKey: ['price_cache'],
     queryFn: async (): Promise<PriceCache[]> => {
-      const { data, error } = await supabase.from('price_cache').select('*');
-      if (error) throw error;
-      return data ?? [];
+      const snap = await getDocs(sharedCollection('price_cache'));
+      return snap.docs.map((d) => d.data() as PriceCache);
     },
   });
 }
@@ -53,13 +53,8 @@ function useUsdbrlAsset() {
   return useQuery({
     queryKey: ['asset', 'USDBRL'],
     queryFn: async (): Promise<string | null> => {
-      const { data, error } = await supabase
-        .from('assets')
-        .select('id')
-        .eq('ticker', 'USDBRL')
-        .maybeSingle();
-      if (error) throw error;
-      return data?.id ?? null;
+      const snap = await getDocs(query(sharedCollection('assets'), where('ticker', '==', 'USDBRL'), limit(1)));
+      return snap.empty ? null : snap.docs[0].id;
     },
   });
 }

@@ -12,7 +12,7 @@ import { CurrencyDonut } from '@/components/charts/CurrencyDonut';
 import { PositionsTable } from './PositionsTable';
 import { RefreshCw, TrendingUp, TrendingDown, Wallet, Coins } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
+import { apiPost } from '@/lib/api';
 import { toast } from '@/components/ui/toast';
 
 function KpiCard({
@@ -60,9 +60,8 @@ export function HomePage() {
   async function refreshPrices() {
     setRefreshing(true);
     try {
-      const { data, error } = await supabase.functions.invoke('refresh-prices', { body: {} });
-      if (error) throw error;
-      toast.success(t('dashboard.refreshPrices'), data?.message);
+      const data = await apiPost<{ message: string }>('/ledgenator/refresh-prices');
+      toast.success(t('dashboard.refreshPrices'), data.message);
       void qc.invalidateQueries({ queryKey: ['price_cache'] });
     } catch (e) {
       toast.error(t('common.error'), (e as Error).message);

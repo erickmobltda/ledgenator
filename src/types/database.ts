@@ -1,4 +1,4 @@
-// Hand-maintained until `supabase gen types typescript` is wired up.
+// Shapes of the Firestore documents (see src/lib/firebase.ts for the paths).
 
 export type AssetType = 'STOCK' | 'ETF' | 'FII' | 'REIT' | 'CRYPTO' | 'BOND' | 'OTHER';
 export type Market = 'B3' | 'NASDAQ' | 'NYSE' | 'CRYPTO' | 'OTHER';

@@ -16,10 +16,10 @@ function FullScreenLoader() {
 }
 
 export default function App() {
-  const { session, loading } = useAuth();
+  const { user, loading } = useAuth();
 
   if (loading) return <FullScreenLoader />;
-  if (!session) return <LoginPage />;
+  if (!user) return <LoginPage />;
 
   return (
     <Routes>

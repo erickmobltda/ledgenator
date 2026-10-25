@@ -6,7 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { supabase } from '@/lib/supabase';
+import { getDoc, setDoc } from 'firebase/firestore';
+import { signOut } from 'firebase/auth';
+import { auth, userDoc } from '@/lib/firebase';
 import type { Profile } from '@/types/database';
 import { toast } from '@/components/ui/toast';
 import { LogOut } from 'lucide-react';
@@ -19,13 +21,11 @@ export function ProfilePage() {
   const profile = useQuery({
     queryKey: ['profile'],
     queryFn: async (): Promise<Profile | null> => {
-      const { data: userRes } = await supabase.auth.getUser();
-      const user = userRes.user;
+      const user = auth.currentUser;
       if (!user) return null;
       setEmail(user.email ?? '');
-      const { data, error } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
-      if (error) throw error;
-      return data;
+      const snap = await getDoc(userDoc('profile', 'main'));
+      return snap.exists() ? ({ id: user.uid, ...snap.data() } as Profile) : null;
     },
   });
 
@@ -41,14 +41,11 @@ export function ProfilePage() {
 
   const save = useMutation({
     mutationFn: async () => {
-      const { data: userRes } = await supabase.auth.getUser();
-      const id = userRes.user!.id;
-      const { error } = await supabase.from('profiles').upsert({
-        id,
-        display_name: displayName.trim() || null,
-        preferred_locale: locale,
-      });
-      if (error) throw error;
+      await setDoc(
+        userDoc('profile', 'main'),
+        { display_name: displayName.trim() || null, preferred_locale: locale },
+        { merge: true },
+      );
     },
     onSuccess: () => {
       void i18n.changeLanguage(locale);
@@ -86,7 +83,7 @@ export function ProfilePage() {
             <Button onClick={() => save.mutate()} disabled={save.isPending}>
               {t('profile.save')}
             </Button>
-            <Button variant="outline" onClick={() => void supabase.auth.signOut()}>
+            <Button variant="outline" onClick={() => void signOut(auth)}>
               <LogOut className="size-4" />{t('auth.signOut')}
             </Button>
           </div>
