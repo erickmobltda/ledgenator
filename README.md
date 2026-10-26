@@ -22,7 +22,8 @@ of buy/sell operations so the dashboard, charts, and reports all have data.
 > It's a **shared sandbox** account: anyone can sign in, so data may have been
 > changed by other visitors. To reset it, see [Resetting the demo account](#resetting-the-demo-account).
 > The demo account cannot refresh prices (the API rejects it; that call spends paid
-> market-data quota) and has no access to the other apps that share the login.
+> market-data quota). The other apps that share the login use the same account for
+> their own **Try the demo** buttons, each with its own sample data.
 
 ## How it fits together
 

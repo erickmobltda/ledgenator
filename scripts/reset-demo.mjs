@@ -20,7 +20,7 @@ const db = getFirestore();
 const seed = JSON.parse(readFileSync(new URL('./demo-seed.json', import.meta.url), 'utf8'));
 const demo = await auth.getUserByEmail(DEMO_EMAIL);
 
-// The claim keeps the demo away from paid APIs and from the other apps.
+// The claim keeps the demo away from paid APIs and from shared data.
 await auth.updateUser(demo.uid, { password: DEMO_PASSWORD });
 await auth.setCustomUserClaims(demo.uid, { demo: true });
 

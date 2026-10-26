@@ -9,8 +9,8 @@ import { auth } from '@/lib/firebase';
 import { toast } from '@/components/ui/toast';
 import { Sparkles } from 'lucide-react';
 
-// Public sandbox account; erickmob-api and the Firestore rules keep it inside
-// Ledgenator and away from paid APIs (custom claim `demo`).
+// Public sandbox account shared by the erickmob apps; erickmob-api and the
+// Firestore rules keep it inside its own data and away from paid APIs (custom claim `demo`).
 const DEMO_EMAIL = 'demo@ledgenator.app';
 const DEMO_PASSWORD = 'demo1234';
 
